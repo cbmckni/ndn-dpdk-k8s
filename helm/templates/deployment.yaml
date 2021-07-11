@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.Deployment.Name }}
+  labels:
+    app: {{ .Values.Deployment.Name }}
+spec:
+  replicas: {{ .Values.Deployment.Replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.Deployment.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.Deployment.Name }}
+    spec:
+      containers:               
+      - name: {{ .Values.Deployment.Name }}
+        image: {{ .Values.Deployment.Image }}
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ {{ .Values.Deployment.Arg }} ]
+        resources:
+          requests:
+            cpu: {{ .Values.Resources.Requests.CPU }}
+            memory: {{ .Values.Resources.Requests.Memory }}
+          limits:
+            cpu: {{ .Values.Resources.Limits.CPU }}
+            memory: {{ .Values.Resources.Limits.Memory }}
+        volumeMounts:
+        - name: vol-1
+          mountPath: {{ template "pvcPath" . }}
+      {{ if .Values.Deployment.Host }} 
+      nodeSelector:
+          kubernetes.io/hostname: {{ .Values.Deployment.Hostname }}
+      {{ end }}
+      restartPolicy: Always
+      volumes:
+        - name: vol-1
+          persistentVolumeClaim:
+            claimName: {{ template "pvcName" . }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Values.Deployment.Name }}
+  labels:
+    app: {{ .Values.Deployment.Name }}
+    chart: {{ template "ndn-k8s.chart" . }}
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.Deployment.Name }}
+  ports:
+  - port: 6363
+    targetPort: 6363
+---
+{{ if .Values.Ingress.Enabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Values.Deployment.Name }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: ""
+    kubernetes.io/ingress.class: {{ .Values.Ingress.Class }}
+spec:
+  rules:
+  - host: {{ .Values.Ingress.Host }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Values.Deployment.Name }}
+          servicePort: 6363
+
+---
+{{ end }}
+{{ if .Values.NewPVC.Enabled }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Values.NewPVC.Name }}
+  labels:
+    app: {{ .Values.Deployment.Name }}
+    chart: {{ template "ndn-k8s.chart" . }}
+    release: {{ .Release.Name }}
+    instance: {{ .Values.Instance }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: {{ .Values.NewPVC.StorageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.NewPVC.Size }}
+{{ end }}
+    
+
+# Variables
+
+{{- define "pvcPath" -}}
+{{- if .Values.NewPVC.Enabled }}{{ .Values.NewPVC.Path }}{{ else }}{{ .Values.ExistingPVC.Path }}{{ end }}
+{{- end -}}
+
+{{- define "pvcName" -}}
+{{- if .Values.NewPVC.Enabled }}{{ .Values.NewPVC.Name }}{{ else }}{{ .Values.ExistingPVC.Name }}{{ end }}
+{{- end -}}

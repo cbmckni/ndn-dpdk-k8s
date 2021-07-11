@@ -1,0 +1,77 @@
+# Declare variables to be passed into your templates.
+
+
+
+# Deployment Settings
+
+Deployment:
+  Name: ndn-dpdk-test
+  Image: cbmckni/ndn-dpdk
+  Host: false # deploy to specific host vs "random"
+  Hostname: suncave-0
+  Replicas: 1
+  Arg: "
+    apt-get update -y && apt-get install git && /workspace/ndn
+    git clone https://github.com/cbmckni/ndn-k8s.git 
+    /workspace/ndn/scripts/boot.sh &&
+    /workspace/ndn/scripts/delay.sh
+  "
+
+# EXAMPLE PRODUCER: "
+# /workspace/ndn/scripts/boot.sh &&
+# /workspace/ndn/scripts/put.sh /k8s/pub/file /workspace/ndn/samples/1GB
+# "
+
+# EXAMPLE CONSUMER: "
+# /workspace/ndn/scripts/boot.sh &&
+# /workspace/ndn/scripts/route.sh / PRODUCER_NAME &&
+# /workspace/ndn/scripts/cat.sh -n /k8s/pub/file -o /workspace/ndn/output/1GB.test -t /workspace/ndn/times/sample_tests &&
+# /workspace/ndn/scripts/delay.sh
+# "
+
+# EXAMPLE MANUAL: "
+# /workspace/ndn/scripts/boot.sh &&
+# /workspace/ndn/scripts/delay.sh
+# "
+
+
+
+
+# Resource Requests
+
+Resources:
+  Requests:
+    CPU: 1
+    Memory: 4Gi
+  Limits:
+    CPU: 1
+    Memory: 4Gi
+
+
+
+# PVC Settings
+
+ExistingPVC:
+  # If true, use existing PVC on local cluster.
+  Enabled: true
+  Name: genome-lake
+  Path: /workspace
+
+NewPVC:
+  # If true, create new PVC on local cluster.
+  Enabled: false
+  Name: ndn-k8s-pvc-test
+  Size: 50Gi
+  StorageClass: nfs # Make sure storage class provisioner exists!
+  Path: /workspace
+
+
+
+# Ingress control settings
+Ingress:
+  Enabled: false
+  # The subdomain to associate with this service.
+  Host: ndnlakev1.nautilus.optiputer.net
+  # The class of the ingress controller to use.
+  Class: traefik
+

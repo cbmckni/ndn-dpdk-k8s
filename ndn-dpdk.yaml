@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ndn-dpdk
+  labels:
+    app: ndn-dpdk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ndn-dpdk
+  template:
+    metadata:
+      labels:
+        app: ndn-dpdk
+    spec:
+      containers:
+      - name: ndn-dpdk
+        image: cbmckni/ndn-dpdk
+        imagePullPolicy: Always
+        ports:
+            - containerPort: 33567
+        command: ["/bin/bash"]
+        args: ["-c", "sleep infinity" ]
+        securityContext:
+          capabilities:
+            add: ["IPC_LOCK"]
+            add: ["NET_ADMIN"]
+            add: ["SYS_ADMIN"]
+            add: ["SYS_NICE"]
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+            hugepages-2Mi: 100Mi
+            hugepages-1Gi: 2Gi
+          limits:
+            cpu: 1
+            memory: 4Gi
+            hugepages-2Mi: 100Mi
+            hugepages-1Gi: 2Gi
+        volumeMounts:
+        - name: ndn-dpdk-volume
+          mountPath: /workspace
+        - name: hugepage-2mi
+          mountPath: /hugepages-2Mi
+        - name: hugepage-1gi
+          mountPath: /hugepages-1Gi
+      restartPolicy: Always
+      volumes:
+        - name: ndn-dpdk-volume
+          persistentVolumeClaim: ndn-dpdk-pvc
+        - name: hugepage-2mi
+          emptyDir:
+            medium: HugePages-2Mi
+        - name: hugepage-1gi
+          emptyDir:
+            medium: HugePages-1Gi
