@@ -9,7 +9,7 @@ fi
 
 wget -O ndn-dpdk.img https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-amd64.img
 
-#qemu-img resize bionic-server-cloudimg-amd64.img 5G
+qemu-img resize ndn-dpdk.img 3G
 
 virt-customize -a ndn-dpdk.img  --root-password password:$1
 
@@ -53,10 +53,11 @@ EOF
 virsh define vm.xml
 
 #Copy ndn-dpdk binaries
-docker run cbmckni/ndn-dpdk-builder &
-ID=$(docker container ls | grep cbmckni/ndn-dpdk-builder | awk '{ print $1 }')
+docker run cbmckni/ndn-dpdk-builder:latest &
+sleep 5
+ID=$(docker container ls | grep cbmckni/ndn-dpdk-builder:latest | awk '{ print $1 }')
 docker cp ${ID}:/usr/local local
-virt-copy-in -a ndn-dpdk.img local /usr
+virt-copy-in -a ndn-dpdk.img ./local /usr
 
 virsh start ndndpdk
 

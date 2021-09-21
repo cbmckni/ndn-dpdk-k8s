@@ -1,14 +1,14 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: ndndpdkvm
+  name: ndndpdkvm-cole
 spec:
   running: false
   template:
     metadata:
       labels:
         kubevirt.io/size: small
-        kubevirt.io/domain: ndndpdkvm
+        kubevirt.io/domain: ndndpdkvm-cole
     spec:
       domain:
         devices:
