@@ -9,7 +9,7 @@ fi
 
 wget -O ndn-dpdk.img https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-amd64.img
 
-qemu-img resize ndn-dpdk.img 3G
+qemu-img resize ndn-dpdk.img 5G
 
 virt-customize -a ndn-dpdk.img  --root-password password:$1
 

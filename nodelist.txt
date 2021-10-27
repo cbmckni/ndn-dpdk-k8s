@@ -1,0 +1,5 @@
+nrp-c11.nysernet.org
+nrp-c13.nysernet.org
+nrp-c14.nysernet.org
+k8s-igrok-06.calit2.optiputer.net
+k8s-igrok-07.calit2.optiputer.net

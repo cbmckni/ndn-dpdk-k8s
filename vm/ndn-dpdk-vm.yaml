@@ -22,9 +22,16 @@ spec:
           interfaces:
           - name: default
             masquerade: {}
+          filesystems:
+          - name: ndnpvc
+            virtiofs: {}
         resources:
+          limits:
+            memory: 4Gi
+            hugepages-1Gi: 2Gi
           requests:
-            memory: 64M
+            memory: 4Gi
+            hugepages-1Gi: 2Gi
       networks:
       - name: default
         pod: {}
@@ -35,3 +42,6 @@ spec:
         - name: cloudinitdisk
           cloudInitNoCloud:
             userDataBase64: SGkuXG4=
+        - name: ndnpvc
+          persistentVolumeClaim:
+            claimName: task-pv-claim-cole
