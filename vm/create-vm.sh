@@ -52,13 +52,6 @@ EOF
 
 virsh define vm.xml
 
-#Copy ndn-dpdk binaries
-docker run cbmckni/ndn-dpdk-builder:latest &
-sleep 5
-ID=$(docker container ls | grep cbmckni/ndn-dpdk-builder:latest | awk '{ print $1 }')
-docker cp ${ID}:/usr/local local
-virt-copy-in -a ndn-dpdk.img ./local /usr
-
 virsh start ndndpdk
 
 echo "Done! Run 'virsh console ndndpdk' to access VM. "

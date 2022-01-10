@@ -4,17 +4,19 @@ This is a collection of tools for orchestrating NDN-DPDK VMs on Kubernetes.
 
 Installing dependencies, building, and deploying the VMs will be covered.
 
-## Installation
+## Deploy a NDN-DPDK VM on a Kubernetes Cluster
+
+### Installation
 
 First, install dependencies:
  - [kubectl](https://kubernetes.io/docs/tasks/tools/)
- - [virtctl](https://kubevirt.io/user-guide/operations/virtctl_client_tool/)
- - [kvm](https://www.tecmint.com/install-kvm-on-ubuntu/)
-*Some tools may be missing. A simple search will reveal installation docs for missing tools.*
+ - [virtctl](https://kubevirt.io/user-guide/operations/
 
 Make sure kubectl is configured properly with the Kubernetes cluster of your choosing.
 
-## Deploy NDN-DPDK VM
+**The Kubernetes cluster must have KubeVirt installed.**
+
+### Deployment Steps
 
 To deploy a VM to a Kubernetes cluster using KubeVirt:
 
@@ -38,9 +40,34 @@ Stop VM with: `virtctl stop <vm-name>`
 
 Delete VM with: `kubectl delete -f ndn-dpdk-vm.yaml`
 
-## Build NDN-DPDK VM
+## Build NDN-DPDK Container Disk
 
-To add software to the ContainerDisk, a new build must be done. 
+To add software to the Container Disk or update NDN-DPDK, a new build must be done.
+
+### Installation(Build)
+
+First, install dependencies:
+ - [kvm](https://www.tecmint.com/install-kvm-on-ubuntu/)
+ - [QEMU](https://www.qemu.org/download/#linux)
+ - [virt-customize](https://command-not-found.com/virt-customize)
+ - [Docker](https://docs.docker.com/engine/install/)
+ - [virsh](https://help.ubuntu.com/community/KVM/Virsh)
+
+Example one-liners that will install most of the KVM-related tools(run with root permissions):
+
+Debian:
+
+`apt-get update -y && apt install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager`
+
+Fedora:
+
+`yum update -y && yum install -y qemu-kvm libvirt libvirt-python libguestfs-tools virt-install`
+
+[Source](https://www.cyberciti.biz/faq/how-to-install-kvm-on-centos-7-rhel-7-headless-server/)
+
+
+### Build Steps
+ 
 
 First, run the script [create-vm.sh](https://github.com/cbmckni/ndn-dpdk-k8s/blob/master/vm/create-vm.sh) with your desired default root password: `./create-vm <password>`
 
@@ -49,13 +76,27 @@ First, run the script [create-vm.sh](https://github.com/cbmckni/ndn-dpdk-k8s/blo
 This script does the following:
 
  - Downloads the Ubuntu 20.04 cloud image.
+ - Resizes the disk to 5GB.
  - Sets the default root password for the image.
  - Creates a VM definition XML file.
- - Runs the builder docker container.
- - Copies the pre-built NDN-DPDK binaries in the container locally, then into the VM.
  - Starts the VM.
 
-After the script has finished, run `virsh console ndndpdk` to access the VM. 
+After the script has finished, it is time to copy the pre-built NDN-DPDK binaries into the VM.
+
+Run the docker image that contains the binaries:
+`docker run cbmckni/ndn-dpdk-builder:latest &`
+**To get the current NDN-DPDK binaries, a fresh ndn-dpdk-builder image must be built. Do this by building the official ndn-dpdk image with the CMD/ENTRYPOINT changed to `CMD tail -f /dev/null`**
+
+Get the ID of the running container:
+`ID=$(docker container ls | grep cbmckni/ndn-dpdk-builder:latest | awk '{ print $1 }')`
+
+Copy the files from the container to your local machine:
+`docker cp ${ID}:/usr/local local`
+
+Copy the files from your local machine to the running VM:
+`virt-copy-in -a ndn-dpdk.img ./local /usr`
+
+run `virsh console ndndpdk` to access the VM. 
 
 Use the login `root` and the password you specified.
 
@@ -144,7 +185,7 @@ Next, copy and paste the [install-ndn-dpdk.sh](https://github.com/cbmckni/ndn-dp
 
 That will install all the NDN-DPDK dependencies and any other software you wish to add.
 
-After the script has finished, exit the VM and stop it with `shutdown -h now`.
+After the script has finished, shutdown the VM with `shutdown -h now`. Exit the process with "CTRL+["
 
 You should now have a stopped VM and the file `ndn-dpdk.img` in your current directory.
 
