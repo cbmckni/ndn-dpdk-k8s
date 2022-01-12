@@ -10,7 +10,7 @@ Installing dependencies, building, and deploying the VMs will be covered.
 
 First, install dependencies:
  - [kubectl](https://kubernetes.io/docs/tasks/tools/)
- - [virtctl](https://kubevirt.io/user-guide/operations/
+ - [virtctl](https://kubevirt.io/user-guide/operations/virtctl_client_tool/)
 
 Make sure kubectl is configured properly with the Kubernetes cluster of your choosing.
 

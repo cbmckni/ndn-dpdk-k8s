@@ -1,3 +1,13 @@
+### Installation
+
+First, install dependencies:
+ - [kubectl](https://kubernetes.io/docs/tasks/tools/)
+ - [virtctl](https://kubevirt.io/user-guide/operations/virtctl_client_tool/)
+
+Make sure kubectl is configured properly with the Kubernetes cluster of your choosing.
+
+**The Kubernetes cluster must have KubeVirt installed.**
+
 ## Deployment
 
 First, create a list of nodes on your K8s cluster and save it to a text file:
