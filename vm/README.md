@@ -85,6 +85,7 @@ After the script has finished, it is time to copy the pre-built NDN-DPDK binarie
 
 Run the docker image that contains the binaries:
 `docker run cbmckni/ndn-dpdk-builder:latest &`
+
 **To get the current NDN-DPDK binaries, a fresh ndn-dpdk-builder image must be built. Do this by building the official ndn-dpdk image with the CMD/ENTRYPOINT changed to `CMD tail -f /dev/null`**
 
 Get the ID of the running container:
